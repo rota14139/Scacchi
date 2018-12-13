@@ -69,6 +69,8 @@ lunghezza nome utente massima =15 char;
     4 nessun pezzo nella cella di partenza
     5 alleato nella cella di arrivo
     6 movimento sbagliato
+    7 impossibile muovere re in una cella sotto scacco
+    8 non puoi muovere se il tuo re è sotto scacco/ non puoi mandare sotto scacco il tuo re muovendo
 
 -SCACCHIERA INIZIALE
 scacchiera[8][8] : char
