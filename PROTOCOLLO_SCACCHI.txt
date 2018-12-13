@@ -6,83 +6,88 @@
 giocatore VS giocatore
 giocatore VS AI (?)
 
+    OGNI GIOCATORE VEDE LA SCACCHIERA DALLA PROPRIA PARTE
+    ?arrocco?
+    ?promozione?
+    ?presa al varco?
 
 -PROTOCOLLO
 grandezza buffer=20	char
 lunghezza nome utente massima =15 char;
 
     -FASE CONNESSIONE
-    	-client1 invia nome utente a server
-    	-server riceve nome_utente1 e dice al client1 che è il primo giocatore (bianco)
-    	-client1 riceve che è il giocatore bianco... aspetta nome avversario
-    	-client2 invia nome utente a server
-    	-server riceve nome_utente2 e dice al client2 che è il secondo giocatore (nero)
-    	-client2 riceve che è il giocatore nero
-    	-server invia a client1 nome_utente2
+        -client1 si connette... e attende
+        -client2 si connette... e attende
+        -server invia a client1 che è il primo giocatore (bianco)
+        -client1 riceve che è il primo giocatore e invia nome utente a server
+    	-server riceve nome_utente1 e invia a client2 che è il secondo giocatore (nero)
+    	-client2 riceve che è il secondo giocatore e invia nome utente a server
+    	-server riceve nome_utente2  e invia a client1 nome_utente2
     	-client1 riceve nome_utente2
     	-server invia a client2 nome_utente1
     	-client2 riceve nome_utente1
-	
+
 	-GIOCO
 :bho	-client1    invia movimento a server
-        -server     riceve e calcola movimento ed invia movimento a client1 
+        -server     riceve e calcola movimento ed invia movimento a client1
     	-client1    riceve movimento e sposta
     	-server     invia movimento a client2
         -client2    riceve movimento e sposta e invia movimento nuovo a server
-        -server     riceve e calcola movimento ed invia movimento a client2 
+        -server     riceve e calcola movimento ed invia movimento a client2
     	-client2    riceve movimento e sposta
     	-server     invia movimento a client1
     	-client1    riceve movimento e sposta
         goto bho
-        //se il controllo non è andato a buon fine richiede al client che deve muovere il movimento
-        
+        //se il controllo non è andato a buon fine richiede al client il movimento
+!?!     --?-- inviare il tipo di errore (es: nessuna pedina nella casella di partenza - casella di arrivo già occupata - movimento sbagliato per quella pedina - ecc... ) --?--
         //ogni volta che viene inviato il movimento deve controllare se è scacco(invia scacco) o se la partita è finita [re mangiato ~ resa] ( invia fine a entrambi i client e vincitore)
-        
-
-client -> server
-    -INIZIO ~ AVVERSARIO
-     I<nome_utente>\0
-    -MOVIMENTO
-     MG1F3\0
-    -MOVIMENTO SBAGLIATO
-     ERROR\0
-    -COMANDO RESA
-     RESA\0
-
-server -> client
-    -MOVIMENTO
-     MG1F3\0
-    -SCACCO
-     SG1F3\0
-    -FINE
-     F<nome_utente>\0
 
 
-SCACCHIERA INIZIALE
+    client -> server
+        -NOME_UTENTE
+         I<nome_utente>\0
+        -MOVIMENTO
+         MG1F3\0
+        -COMANDO RESA
+         RESA\0
+
+    server -> client
+        -GIOCATORE N°
+         N?\0               ? = (B: bianco ~ N: nero) oppure (1: bianco ~ 2: nero)
+        -NOME_UTENTE
+         I<nome_utente>\0
+        -MOVIMENTO
+         MG1F3\0
+        -MOVIMENTO SBAGLIATO
+         ERROR\0
+        -SCACCO
+         SG1F3\0
+        -FINE
+         F?<nome_utente>\0  ? = (B: bianco ~ N: nero) oppure (1: bianco ~ 2: nero)
+
+
+-SCACCHIERA INIZIALE
 scacchiera[8][8] : char
 
   	A   B   C   D   E   F   G   H
-  	
-8 	t   c   a   r   k   a   c   t 
 
-7 	p   p   p   p   p   p   p   p   
+8 	t   c   a   r   k   a   c   t
 
-6 	-   -   -   -   -   -   -   -  
+7 	p   p   p   p   p   p   p   p
 
-5 	-   -   -   -   -   -   -   -  
+6 	-   -   -   -   -   -   -   -
 
-4 	-   -   -   -   -   -   -   -  
- 
-3 	-   -   -   -   -   -   -   -   
+5 	-   -   -   -   -   -   -   -
 
-2 	P   P   P   P   P   P   P   P  
+4 	-   -   -   -   -   -   -   -
+
+3 	-   -   -   -   -   -   -   -
+
+2 	P   P   P   P   P   P   P   P
 
 1 	T   C   A   R   K   A   C   T
 
 
-
-
-PEDINE
-
+-PEDINE
 ♔♕♖♗♘♙
 ♚♛♜♝♞♟
