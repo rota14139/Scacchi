@@ -1,2 +1,2 @@
 # Scacchi
-scacchi client-server
+scacchi client-server linux

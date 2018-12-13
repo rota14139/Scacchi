@@ -1,5 +1,4 @@
 ﻿SCACCHI
-
 - 1 partita alla volta (per ora)
 
 -modalità
@@ -7,9 +6,6 @@ giocatore VS giocatore
 giocatore VS AI (?)
 
     OGNI GIOCATORE VEDE LA SCACCHIERA DALLA PROPRIA PARTE
-    ?arrocco?
-    ?promozione?
-    ?presa al varco?
 
 -PROTOCOLLO
 grandezza buffer=20	char
@@ -39,7 +35,6 @@ lunghezza nome utente massima =15 char;
     	-client1    riceve movimento e sposta
         goto bho
         //se il controllo non è andato a buon fine richiede al client il movimento
-!?!     --?-- inviare il tipo di errore (es: nessuna pedina nella casella di partenza - casella di arrivo già occupata - movimento sbagliato per quella pedina - ecc... ) --?--
         //ogni volta che viene inviato il movimento deve controllare se è scacco(invia scacco) o se la partita è finita [re mangiato ~ resa] ( invia fine a entrambi i client e vincitore)
 
 
@@ -58,13 +53,22 @@ lunghezza nome utente massima =15 char;
          I<nome_utente>\0
         -MOVIMENTO
          MG1F3\0
-        -MOVIMENTO SBAGLIATO
-         ERROR\0
+        -DOPPIO MOVIMENTO
+         DG1F3              //quando si riceve un doppio movimento si aspetta un altro movimento
+        -ERRORE
+         E?\0               ?= *↓
         -SCACCO
          SG1F3\0
         -FINE
          F?<nome_utente>\0  ? = (B: bianco ~ N: nero) oppure (1: bianco ~ 2: nero)
 
+   *Errori
+    1 errore formattazione (lunghezza)
+    2 posizioni illegali (inesistenti, fuori scacchiera)
+    3 casella di arrivo uguale a casella di partnza
+    4 nessun pezzo nella cella di partenza
+    5 alleato nella cella di arrivo
+    6 movimento sbagliato
 
 -SCACCHIERA INIZIALE
 scacchiera[8][8] : char

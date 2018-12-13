@@ -23,6 +23,9 @@ public:
     }
     //funzioni test
     virtual void stampa ()=0;
+    virtual bool getMosso()
+    {
+    }
 };
 
 class re : public pezzo
@@ -39,18 +42,12 @@ public:
         if(abs(mov[1]-mov[3])<=1 &&abs(mov[0]-mov[2])<=1)// se si sposta di 1
         {
             mosso=true;
-            return true;
+            return 5;
         }
+        if(!mosso)
+            if((mov[3]=='1'||mov[3]=='8')&&(mov[2]=='G'||mov[2]=='C'))
+                return 6;
         return false;
-        /*fare arrocco...
-        var...Il Re non deve mai essere stato mosso prima durante la partita;
-        var...La Torre coinvolta nell’arrocco non deve mai essere stata spostata prima durante la partita;
-        Il Re al momento di effettuare l’arrocco non deve essere sotto scacco (cioè situato in una casa sottoposta al tiro avversario);
-        Il Re durante il movimento dell’arrocco non deve attraversare case sotto scacco. Anche la casa d'arrivo non deve essere sotto scacco;
-        Fra il Re e la Torre non ci devono essere altri pezzi, né amici né avversari.
-        -----
-        controllare se tra non c'è vicino un altro re (da fare altro caso particolare nel return)
-        */
     }
     void stampa ()
     {
@@ -95,6 +92,10 @@ public:
     void stampa ()
     {
         cout<<(char)('T'+(32*colore));
+    }
+    bool getMosso()
+    {
+        return mosso;
     }
 };
 class alfiere : public pezzo
