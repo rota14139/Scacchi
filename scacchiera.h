@@ -26,15 +26,15 @@ public:
         casella[0][5]= new alfiere(1);
         casella[0][6]= new cavallo(1);
         casella[0][7]= new torre(1);
-        for(int i =0;i<8;i++) //pedoni neri
-            casella[1][i]= new pedone(1);
+//        for(int i =0;i<8;i++) //pedoni neri
+//            casella[1][i]= new pedone(1);
 
-        for(int j =2;j<5;j++)   //caselle vuote
+        for(int j =1;j<6;j++)   //caselle vuote
             for(int i =0;i<8;i++)
                 casella[j][i]= NULL;
 
-        for(int i =0;i<8;i++)//pedoni bianchi
-            casella[6][i]= new pedone(0);
+//        for(int i =0;i<8;i++)//pedoni bianchi
+//            casella[6][i]= new pedone(0);
         casella[7][0]= new torre(0);
         casella[7][1]= new cavallo(0);
         casella[7][2]= new alfiere(0);
@@ -44,13 +44,23 @@ public:
         casella[7][6]= new cavallo(0);
         casella[7][7]= new torre(0);
     }
+    scacchiera(const scacchiera &scach)
+    {
+        for(int i =0;i<8;i++)
+            for(int j=0;j<8;j++)
+                casella[i][j] = scach.casella[i][j];
+        strcpy(pos_re[0],scach.pos_re[0]);
+        strcpy(pos_re[1],scach.pos_re[1]);
+    }
     int sposta(char mov[5],bool turno);
     int controlla_movimento(char mov[5],bool turno); //controlla se un movimento si possa fare
     bool scacco(char cella[3],bool colore); //controlla se una deter        minata cella è sotto scacco (utile per re e per arrocco)
+    bool scacco_matto(char cella[3],bool colore);
     bool controllo_tragitto(char mov[5]); // bool controllo_caselle_in mezzo(char mov[5]);
     void movimento(char mov[5]); //muove un pezzo (senza controllo... quindi farlo prima)
     void promozione(char cella[3],char pezzo);
     bool controlla_vittoria(bool turno);
+    scacchiera operator= ( scacchiera scach);
     char * getRe(int i);
 
     //funzioni per fase di test
@@ -196,6 +206,102 @@ bool scacchiera::scacco(char cella[3],bool colore)
         }
     return false;
 }
+
+bool scacchiera::scacco_matto(char cella[3],bool colore)
+{
+    char re[3];
+    char mov[5];
+    scacchiera sup(*this);
+    mov[0]=cella[0];
+    mov[1]=cella[1];
+    mov[4]=0;
+    for(int i =-1;i<2;i++)//controllo re
+        for(int j =-1;j<2;j++)
+        {
+            strcpy(re,cella);
+            sup=*this;
+            re[0]+=i;
+            re[1]+=j;
+            mov[2]=re[0];
+            mov[3]=re[1];
+            if(sup.sposta(mov,colore)==0)
+                    return false;
+        }
+
+    //cerco la pedina che mi mette sotto scacco
+
+    mov[2]=cella[0];
+    mov[3]=cella[1];
+    mov[4]=0;
+
+    sup=*this;
+    bool stato=false;
+    for(int j =0;j<8&&!stato;j++)
+        for(int i =0;i<8&&!stato;i++)
+        {
+            mov[0]=i+'A';
+            mov[1]=(7-j)+'1';
+            if(casella[j][i]!=NULL)
+                if(casella[8-(mov[1]-'0')][(mov[0]-'A')]->get_colore()!=colore)
+                    if((abs(mov[1]-mov[3])==0 || abs(mov[0]-mov[2])==0||abs(mov[1]-mov[3])==abs(mov[0]-mov[2]))||((abs(mov[0]-mov[2])==1&&abs(mov[1]-mov[3])==2)||(abs(mov[0]-mov[2])==2&&abs(mov[1]-mov[3])==1)))
+                    {
+                        switch( casella[8-(mov[1]-'0')][(mov[0]-'A')]->movimento(mov))//controllo se il movimento del pezzo è legale
+                            {
+                            case 1: //normale
+                                if(controllo_tragitto(mov))//controllo caselle_in mezzo
+                                    stato= true;
+                                break;
+                            case 3: //pedone mangia
+                            case 4://cavallo che non deve controllare se ci sono pezzi in mezzo
+                            case 5://re muove
+                                stato= true;
+                            }
+                    }
+        }
+    //se ho trovato la pedina sotto scacco (sempre) allora continuo
+    if(stato)
+    {
+        if(mov[0]>mov[2])
+            mov [2]++;
+        else if(mov[0]<mov[2])
+            mov[2]--;
+
+        if(mov[1]>mov[3])
+            mov [3]++;
+        else if(mov[1]<mov[3])
+            mov[3]--;
+
+        while(mov[0]!=mov[2]||mov[1]!=mov[3])
+        {
+            char sup1[5];
+            sup1[2]=mov[0];
+            sup1[3]=mov[1];
+            sup1[4]=0;
+            for(int j =0;j<8;j++)
+                for(int i =0;i<8;i++)
+                {
+                    sup1[0]=i+'A';
+                    sup1[1]=(7-j)+'1';
+                    if(sup.sposta(sup1,colore))
+                        return false;
+                }
+            if(mov[0]<mov[2])
+                mov [0]++;
+            else if(mov[0]>mov[2])
+                mov[0]--;
+
+            if(mov[1]<mov[3])
+                mov [1]++;
+            else if(mov[1]>mov[3])
+                mov[1]--;
+
+        }
+    }
+    else
+        return false;
+    return true;
+}
+
 int scacchiera::controlla_movimento(char mov[5],bool turno)
 {
     if(strlen(mov)==4)
@@ -308,6 +414,14 @@ void scacchiera::promozione(char cella[3],char pezzo)
     }
 }
 
+scacchiera scacchiera::operator= ( scacchiera scach)
+{
+        for(int i =0;i<8;i++)
+            for(int j=0;j<8;j++)
+                casella[i][j] = scach.casella[i][j];
+        strcpy(pos_re[0],scach.pos_re[0]);
+        strcpy(pos_re[1],scach.pos_re[1]);
+}
 bool scacchiera::controlla_vittoria(bool turno)
 {
     return (typeid(*casella[8-(pos_re[turno][1]-'0')][pos_re[turno][0]-'A']))!=typeid(re);
