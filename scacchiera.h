@@ -45,10 +45,12 @@ public:
         casella[7][7]= new torre(0);
     }
     int sposta(char mov[5],bool turno);
-    int controlla_movimento(char mov[5]),bool turno; //controlla se un movimento si possa fare
+    int controlla_movimento(char mov[5],bool turno); //controlla se un movimento si possa fare
     bool scacco(char cella[3],bool colore); //controlla se una deter        minata cella è sotto scacco (utile per re e per arrocco)
     bool controllo_tragitto(char mov[5]); // bool controllo_caselle_in mezzo(char mov[5]);
     void movimento(char mov[5]); //muove un pezzo (senza controllo... quindi farlo prima)
+    void promozione(char cella[3],char pezzo);
+    bool controlla_vittoria(bool turno);
     char * getRe(int i);
 
     //funzioni per fase di test
@@ -85,6 +87,11 @@ int scacchiera::sposta(char mov[5],bool turno)
 {
     int err=controlla_movimento(mov,turno);
     switch(err)//0 = normale >=10 mosse speciali
+    /*  0 normale
+        1~9 errori
+        10 re muove
+        11 arrocco
+        12 promozione */
     {
     case 0:
         {
@@ -97,10 +104,9 @@ int scacchiera::sposta(char mov[5],bool turno)
                 casella[8-(mov[3]-'0')][(mov[2]-'A')]=mangiato;
                 return 8;
             }
-            if(typeid(*casella[8-(mov[3]-'0')][(mov[2]-'A')])==typeid(pedone))//se è un pedone
-                if((mov[3])== (casella[8-(mov[3]-'0')][(mov[2]-'A')]->get_colore() ? '1' : '8'))
-                    cout<<"askjfdvgi";
-
+            if(typeid(*casella[8-(mov[3]-'0')][(mov[2]-'A')])==typeid(pedone))                      //se è un pedone...
+                if((mov[3])== (casella[8-(mov[3]-'0')][(mov[2]-'A')]->get_colore() ? '1' : '8'))    //controlla se si può promuovere
+                    return 12;
             return 0;
         }
     case 10: //re muove
@@ -150,7 +156,7 @@ int scacchiera::sposta(char mov[5],bool turno)
                             movimento(mov_torre);
                             char new_pos_re[3]={mov[3],mov[2],0};
                             strcpy(pos_re[casella[8-(mov[3]-'0')][(mov[2]-'A')]->get_colore()],new_pos_re);
-                            return 0;
+                            return 11;
                         }
                     }
             return 6;
@@ -199,42 +205,46 @@ int scacchiera::controlla_movimento(char mov[5],bool turno)
             if(mov[1]!=mov[3] || mov[0]!=mov[2])// se le celle sono uguali
             {
                 if(casella[8-(mov[1]-'0')][(mov[0]-'A')]!=NULL) //se la casella di partenza non è vuota
-                {//mettere controllo se è un tuo pezzo
-                    if(casella[8-(mov[3]-'0')][(mov[2]-'A')]!=NULL)   //se la casella di arrivo non è vuota
+                {
+                    if(casella[8-(mov[1]-'0')][(mov[0]-'A')]->get_colore()==turno)
                     {
-                        if(casella[8-(mov[1]-'0')][(mov[0]-'A')]->get_colore()!=casella[8-(mov[3]-'0')][(mov[2]-'A')]->get_colore())//se nella cella di arrivo non c'è un pezzo dello stesso colore
+                        if(casella[8-(mov[3]-'0')][(mov[2]-'A')]!=NULL)   //se la casella di arrivo non è vuota
+                        {
+                            if(casella[8-(mov[1]-'0')][(mov[0]-'A')]->get_colore()!=casella[8-(mov[3]-'0')][(mov[2]-'A')]->get_colore())//se nella cella di arrivo non c'è un pezzo dello stesso colore
+                                switch( casella[8-(mov[1]-'0')][(mov[0]-'A')]->movimento(mov))//controllo se il movimento del pezzo è legale
+                                {
+                                case 1: //normale
+                                    return controllo_tragitto(mov)? 0 : 6;//controllo caselle_in mezzo;
+                                case 0://mossa sbagliata
+                                case 6://arrocco
+                                case 2://perdone muove avanti
+                                    return 6;  //false perche' non puo' muoversi avanti visto che c'e' un pezzo nemico
+                                case 3: //pedone mangia return true visto che nella cella nemica c'è per forza un pezzo nemico
+                                case 4://cavallo che non deve controllare se ci sono pezzi in mezzo
+                                    return 0;
+                                case 5://re muove
+                                    return 10;
+                                }
+                                return 5;//alleato nella cella di arrivo
+                        }
+                        else
                             switch( casella[8-(mov[1]-'0')][(mov[0]-'A')]->movimento(mov))//controllo se il movimento del pezzo è legale
-                            {
-                            case 1: //normale
-                                return controllo_tragitto(mov)? 0 : 6;//controllo caselle_in mezzo;
-                            case 0://mossa sbagliata
-                            case 6://arrocco
-                            case 2://perdone muove avanti
-                                return 6;  //false perche' non puo' muoversi avanti visto che c'e' un pezzo nemico
-                            case 3: //pedone mangia return true visto che nella cella nemica c'è per forza un pezzo nemico
-                            case 4://cavallo che non deve controllare se ci sono pezzi in mezzo
-                                return 0;
-                            case 5://re muove
-                                return 10;
-                            }
-                            return 5;//alleato nella cella di arrivo
-                    }
-                    else
-                        switch( casella[8-(mov[1]-'0')][(mov[0]-'A')]->movimento(mov))//controllo se il movimento del pezzo è legale
-                            {
-                            case 1: //normale
-                            case 2://perdone muove avanti
-                                return controllo_tragitto(mov)? 0 : 6;    //funzione perchè la casella davanti e' vuota ma se si muove di 2 potrebbe esserci un pezzo in mezzo
-                            case 0://mossa sbagliata
-                            case 3: //mangia pedone
-                                return 6; //nella casella dove potrebbe mangiare non c'è nessun pezzo nemico
-                            case 4://cavallo che non deve controllare se ci sono pezzi in mezzo
-                                return 0;
-                            case 5://re muove
-                                return 10;
-                            case 6://arrocco
-                                return controllo_tragitto(mov)? 11 : 6;
-                            }
+                                {
+                                case 1: //normale
+                                case 2://perdone muove avanti
+                                    return controllo_tragitto(mov)? 0 : 6;    //funzione perchè la casella davanti e' vuota ma se si muove di 2 potrebbe esserci un pezzo in mezzo
+                                case 0://mossa sbagliata
+                                case 3: //mangia pedone
+                                    return 6; //nella casella dove potrebbe mangiare non c'è nessun pezzo nemico
+                                case 4://cavallo che non deve controllare se ci sono pezzi in mezzo
+                                    return 0;
+                                case 5://re muove
+                                    return 10;
+                                case 6://arrocco
+                                    return controllo_tragitto(mov)? 11 : 6;
+                                }
+                    }//non puoi muovere un pezzo avversario
+                    return 9;
                 }//casella di partenza  vuota
                 return 4;
             }//casella di partenza uguale a casella di arrivo
@@ -277,5 +287,29 @@ bool scacchiera::controllo_tragitto(char mov[5])
             return false;
     }
     return true;
+}
+
+void scacchiera::promozione(char cella[3],char pezzo)
+{
+    switch(pezzo)
+    {
+    case 'C':
+        casella[8-(cella[1]-'0')][(cella[0]-'A')]= new cavallo(cella[1]=='1'? 1 : 0 );
+    break;
+    case 'A':
+        casella[8-(cella[1]-'0')][(cella[0]-'A')]= new alfiere(cella[1]=='1'? 1 : 0 );
+    break;
+    case 'R':
+        casella[8-(cella[1]-'0')][(cella[0]-'A')]= new regina(cella[1]=='1'? 1 : 0 );
+    break;
+    case 'T':
+        casella[8-(cella[1]-'0')][(cella[0]-'A')]= new torre(cella[1]=='1'? 1 : 0 );
+    break;
+    }
+}
+
+bool scacchiera::controlla_vittoria(bool turno)
+{
+    return (typeid(*casella[8-(pos_re[turno][1]-'0')][pos_re[turno][0]-'A']))!=typeid(re);
 }
 #endif

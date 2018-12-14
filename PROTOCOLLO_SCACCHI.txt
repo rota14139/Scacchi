@@ -1,10 +1,7 @@
 ﻿SCACCHI
-- 1 partita alla volta (per ora)
 
 -modalità
 giocatore VS giocatore
-giocatore VS AI (?)
-
     OGNI GIOCATORE VEDE LA SCACCHIERA DALLA PROPRIA PARTE
 
 -PROTOCOLLO
@@ -45,6 +42,8 @@ lunghezza nome utente massima =15 char;
          MG1F3\0
         -COMANDO RESA
          RESA\0
+		-PROMOZIONE
+		 P?\0				? = (C,A,R,T)
 
     server -> client
         -GIOCATORE N°
@@ -57,6 +56,8 @@ lunghezza nome utente massima =15 char;
          DG1F3              //quando si riceve un doppio movimento si aspetta un altro movimento
         -ERRORE
          E?\0               ?= *↓
+		-RICHIESTA PROMOZIONE
+		 P?****\0             ? = (?: richiesta ,{C,A,R,T}: pezzo da modificare) *=(movimento da fare)
         -SCACCO
          SG1F3\0
         -FINE

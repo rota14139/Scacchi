@@ -28,7 +28,7 @@ char numeroUtente;
 char nomeUtente[16];
 char nomeAvversario[16];
 char buffer[256];
-char movimento[6];
+char movimento[8];
 char scacchiera[8][8]={{'t','c','a','r','k','a','c','t'},{'p','p','p','p','p','p','p','p'},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{'P','P','P','P','P','P','P','P'},{'T','C','A','R','K','A','C','T'}};
 bool turno;
 
@@ -143,12 +143,13 @@ int main(int argc, char *argv[])
 			case 'F':
 			{
 				controlloFinePartita=true;
-				cout<<"Il vincitore e': "<< movimento[1]==numeroUtente ? nomeUtente : nomeAvversario << ", colore:"<<movimento[1]=='B' ? "bianco" : "nero" ;
+				cout<<"Il vincitore e': "<< (movimento[1]==numeroUtente ? nomeUtente : nomeAvversario) << ", colore:"<<(movimento[1]=='B' ? "bianco" : "nero") ;
 				cout<<"\nPremere invio per continuare...\n";
 				cin.ignore();
 			}break;
 			case 'P':
 			{
+				int o=0;
 				if(movimento[1]=='?')
 				{
 					char prom;
@@ -160,49 +161,28 @@ int main(int argc, char *argv[])
 					}while(prom!='A' && prom!='C' && prom!='R' && prom!='T');
 					strcpy(movimento,"P");
 					movimento[1]=prom;
+					movimento[2]=0;
 					n = write(sockfd,movimento,strlen(movimento)+1);
-				}
-				else
+                    n = read(sockfd,movimento,255);
+                }
+				scacchiera[8-((int)(movimento[6]-48))][(int)(movimento[5]-65)]=scacchiera[8-((int)(movimento[4]-48))][(int)(movimento[3]-65)];
+				scacchiera[8-((int)(movimento[4]-48))][(int)(movimento[3]-65)]=0;
+				switch(movimento[1])
 				{
-					if(numeroUtente=='B')
-					{
-						switch(toupper(movimento[1]))
-						{
-							case 'A':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♝';
-								break;
-							case 'C':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♞';
-								break;
-							case 'R':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♜';
-								break;
-							case 'T':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♚';
-								break;
-						}
-					}
-					else
-					{
-						switch(toupper(movimento[1]))
-						{
-							case 'A':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♗';
-								break;
-							case 'C':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♘';
-								break;
-							case 'R':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♖';
-								break;
-							case 'T':
-								scacchiera[8-((int)(movimento[3]-48))][(int)(movimento[2]-65)]='♕';
-								break;
-						}
-					}
-					
+					case 'A':
+					    scacchiera[8-((int)(movimento[6]-48))][(int)(movimento[5]-65)]=(movimento[6]=='8' ? 'A' : 'a');
+					    break;
+					case 'C':
+					    scacchiera[8-((int)(movimento[6]-48))][(int)(movimento[5]-65)]=(movimento[6]=='8' ? 'C' : 'c');
+					    break;
+					case 'R':
+					    scacchiera[8-((int)(movimento[6]-48))][(int)(movimento[5]-65)]=(movimento[6]=='8' ? 'R' : 'r');
+					    break;
+					case 'T':
+					    scacchiera[8-((int)(movimento[6]-48))][(int)(movimento[5]-65)]=(movimento[6]=='8' ? 'T' : 't');
+					    break;
 				}
-				
+				stampaScacchiera();
 			}break;
 		}
 
@@ -214,7 +194,7 @@ int main(int argc, char *argv[])
 
 	close(sockfd);
 	return 0;
-	// invio al server il nome utente
+	// invio al server il nome ut   ente
 	// ricevo dal server il nome dell'avversario
 
 }

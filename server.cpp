@@ -35,6 +35,9 @@ char richiedi_promozione(int player);
 void comunica_promozione(char* pos ,char pezzo,int player1,int player2);
 void comunica_errore(int err,int player);
 void comunica_fine(bool turno,int player1,int player2,char * player_name);
+void comunica_arrocco(char *mov ,int player1,int player2);
+void comunica_scacco(char mov[5],int player1,int player2);
+
 scacchiera scacchiera1;
 
 int main(int argc, char **argv)
@@ -100,9 +103,7 @@ int main(int argc, char **argv)
            cout<<"client -> server: errore read player"<<(turno ? 2 : 1)<<endl;
         else
             cout<<"client -> server: lettura mossa player"<<(turno ? 2 : 1)<<" buffer letto: "<<buffer<<endl;
-        cout<<"a";
         toup(buffer);
-        cout<<"b";
         switch(buffer[0])
         {
             case 'M':
@@ -113,21 +114,28 @@ int main(int argc, char **argv)
                 {
                     case 0:
                     {
-                        comunica_movimento(&buffer[1],player1,player2);
+                        turno=!turno;
+                        if(scacchiera1.controlla_vittoria(turno))
+                            comunica_fine(turno,player1,player2,player_name[turno]);
+                        else if (scacchiera1.scacco(scacchiera1.getRe(turno),turno))
+                            comunica_scacco(&buffer[1],player1,player2);
+                        else
+                            comunica_movimento(&buffer[1],player1,player2);
+
+
+                    }break;
+                    case 11://arrocco
+                    {
+                        comunica_arrocco(&buffer[1],player1,player2);
                         turno=!turno;
                     }break;
                     case 12:
                     {
                         char  pezzo=richiedi_promozione(turno? player2:player1);
-                        scacchiera1.promozione(&buffer[2],pezzo);
+                        scacchiera1.promozione(&buffer[3],pezzo);
                         comunica_promozione(&buffer[1],pezzo,player1,player2);
                         turno=!turno;
                     }break;
-//                    case 0:
-//                    {
-//                        comunica_movimento(&buffer[1],player1,player2);
-//                        turno=!turno;
-//                    }break;
                     default:
                         comunica_errore(err,turno ? player2 : player1);
 
@@ -265,6 +273,7 @@ void comunica_promozione(char* movimento, char pezzo,int player1,int player2)
     strcpy(buffer,"P");
     strcat(buffer,&pezzo);
     strcat(buffer, movimento);
+    cout<<buffer<<endl;
     if(write(player1,buffer,strlen(buffer)+1)<0)
        cout<<"server -> client: errore write player1\n";
     else
@@ -274,5 +283,41 @@ void comunica_promozione(char* movimento, char pezzo,int player1,int player2)
        cout<<"server -> client: errore write player2\n";
     else
         cout<<"server -> client: comunicazione fine partita a player2\n";
+}
+
+void comunica_arrocco(char *mov ,int player1,int player2)
+{
+
+    char buffer[20];
+    strcpy(buffer,"D");
+    strcat(buffer,mov);
+    if(write(player1,buffer,strlen(buffer)+1)<0)
+       cout<<"server -> client: errore write player1\n";
+    else
+        cout<<"server -> client: comunicazione movimento a player1\n";
+
+    if(write(player2,buffer,strlen(buffer)+1)<0)
+       cout<<"server -> client: errore write player2\n";
+    else
+        cout<<"server -> client: comunicazione movimento a player2\n";
+    mov[0]= (mov[2]=='C' ? 'A' : 'H');
+    mov[2]= (mov[2]=='C' ? 'D':'F');
+    comunica_movimento(mov,player1,player2);
+
+}
+void comunica_scacco(char mov[5],int player1,int player2)
+{
+    char buffer[20];
+    strcpy(buffer,"S");
+    strcat(buffer,mov);
+    if(write(player1,buffer,strlen(buffer)+1)<0)
+       cout<<"server -> client: errore write player1\n";
+    else
+        cout<<"server -> client: comunicazione movimento a player1\n";
+
+    if(write(player2,buffer,strlen(buffer)+1)<0)
+       cout<<"server -> client: errore write player2\n";
+    else
+        cout<<"server -> client: comunicazione movimento a player2\n";
 
 }
